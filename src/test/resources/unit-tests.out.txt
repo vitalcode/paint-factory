@@ -1,0 +1,15 @@
+Case #1: IMPOSSIBLE
+Case #2: 1 0 0 0 0
+Case #3: 1 0 1 0 0
+Case #4: 1 0 0 0 0
+Case #5: 1 0 0 0 0
+Case #6: IMPOSSIBLE
+Case #7: 1 1
+Case #8: 0 0
+Case #9: 1 1
+Case #10: 0 0 0 1 1
+Case #11: 0 0 0 1 1
+Case #12: 1 1 1 1 1
+Case #13: 1 1 1 1 1
+Case #14: IMPOSSIBLE
+Case #15: IMPOSSIBLE

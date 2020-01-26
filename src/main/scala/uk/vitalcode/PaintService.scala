@@ -2,7 +2,7 @@ package uk.vitalcode
 
 import uk.vitalcode.ColorMask.{Demand, Mask}
 
-object PaintService {
+class PaintService {
 
   def optimizeBatch(colors: Int, demands: List[Demand]): String = {
     val masks: List[Mask] = demands.map(ColorMask(colors, _))
@@ -11,17 +11,15 @@ object PaintService {
     def findPossibleSolutions(currentMask: Mask, restMasks: List[Mask]): List[Mask] = {
       restMasks match {
         case next :: rest =>
-          val d = ColorMask.or(currentMask, next, List(Nil))
-          val f = d.flatMap(m => findPossibleSolutions(m, rest))
-          f
+          ColorMask.findPermutations(currentMask, next, List(Nil)).flatMap(m => findPossibleSolutions(m, rest)).distinct
         case Nil =>
           currentMask :: Nil
       }
     }
 
-    val possibleSolutions = findPossibleSolutions(empty, masks)
+    val possibleSolutions = if (masks.size > 1) findPossibleSolutions(masks.head, masks.tail) else masks
 
-    val validSolutions = possibleSolutions.filter(solution => masks.forall(ColorMask.and(_, solution)))
+    val validSolutions = possibleSolutions.filter(solution => masks.forall(ColorMask.check(_, solution)))
 
     if (validSolutions.nonEmpty) {
       val minSolution = ColorMask.min(validSolutions: _*)

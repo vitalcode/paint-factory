@@ -2,37 +2,22 @@ package uk.vitalcode
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.server.Directives._
-import akka.stream.{ActorMaterializer, Materializer}
 import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import io.circe.generic.auto._
-import uk.vitalcode.ColorMask.Demand
 
-import scala.concurrent.ExecutionContextExecutor
-
-case class OptimisationRequest(colors: Int, customers: Int, demands: List[Int])
+case class OptimisationRequest(colors: Int, customers: Int, demands: List[List[Int]])
 
 trait HttpService extends FailFastCirceSupport {
-  implicit val system: ActorSystem
-
-  implicit def executor: ExecutionContextExecutor
-
-  implicit val materializer: Materializer
-
-  def getCustomerDemands(demands: Demand, agg: List[Demand]): List[Demand] = { // TODO refactor out
-    demands match {
-      case h :: rest => getCustomerDemands(rest.drop(h * 2), (h :: rest.take(h * 2)) :: agg)
-      case Nil => agg
-    }
-  }
+  def paintService: PaintService
 
   val routes = {
     pathPrefix("v1") {
       get {
         parameter("input".as[OptimisationRequest]) { input =>
           complete {
-            val customerDemands = getCustomerDemands(input.demands, Nil)
-            PaintService.optimizeBatch(input.colors, customerDemands) // TODO inject
+            HttpResponse(entity = paintService.optimizeBatch(input.colors, input.demands))
           }
         }
       }
@@ -40,13 +25,17 @@ trait HttpService extends FailFastCirceSupport {
   }
 }
 
-object App extends App with HttpService {
-  override implicit val system = ActorSystem()
-  override implicit val executor = system.dispatcher
-  override implicit val materializer = ActorMaterializer()
+object Main extends App with HttpService {
+  implicit val system = ActorSystem()
+  implicit val executor = system.dispatcher
+  val paintService = new PaintService()
 
-  val port = 8080
-  val interface = "0.0.0.0"
+  val binding = Http().bindAndHandle(routes, "0.0.0.0", 8080)
 
-  Http().bindAndHandle(routes, interface, port)
+  Runtime.getRuntime.addShutdownHook(
+    new Thread(() => {
+      binding.flatMap(_.unbind())
+        .onComplete(_ => system.terminate())
+    })
+  )
 }

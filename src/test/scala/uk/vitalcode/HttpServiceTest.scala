@@ -35,7 +35,6 @@ class HttpServiceTest extends AnyFreeSpec with Matchers with ScalatestRouteTest 
         }
 
         def test(input: OptimisationRequest, output: String) {
-          println(s"testing: $input -> $output")
           Get(s"/v1/?input=${input.asJson.noSpaces}") ~> routes ~> check {
             status shouldBe OK
             responseAs[String] shouldBe output

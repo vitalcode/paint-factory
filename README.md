@@ -1,6 +1,6 @@
 # Paint batch optimizer service
 
-solution for Alyan algorithm challenge: https://github.com/AYLIEN/technical_challenge
+Solution for Aylien algorithm challenge: https://github.com/AYLIEN/technical_challenge
 
 ## Purpose
 
